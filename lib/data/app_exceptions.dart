@@ -1,0 +1,3 @@
+class AppExceptions implements Exception{
+
+}
