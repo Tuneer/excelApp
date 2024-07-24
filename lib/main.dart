@@ -1,13 +1,10 @@
-import 'dart:convert';
+import 'dart:io' show Platform;
+import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
-import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:io' show Platform;
-
-import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +17,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Excel App',
       theme: ThemeData(
         // This is the theme of your application.
         //
@@ -40,7 +37,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.amberAccent),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Excel upload page'),
     );
   }
 }
@@ -59,7 +56,6 @@ class MyHomePage extends StatefulWidget {
 
   final String title;
 
-
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
@@ -68,7 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   List<String> rowdetail = [];
   List<List<String>>? _excelData;
-  Map<String,  List<List<String>>?> _tableData={};
+  Map<String, List<List<String>>?> _tableData = {};
 
   void _incrementCounter() {
     setState(() {
@@ -82,35 +78,33 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Future<void> _pickExcelFile() async {
-
     FilePickerResult? pickedFile;
 
-    if(kIsWeb) {
+    if (kIsWeb) {
       /// Use FilePicker to pick files in Flutter Web
-       pickedFile = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['xlsx', 'xls'],
-        allowMultiple: false,
-      );
-    }else if (Platform.isAndroid || Platform.isIOS){
       pickedFile = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx', 'xls'],
         allowMultiple: false,
-        withData: true,
-        withReadStream: true
       );
+    } else if (Platform.isAndroid || Platform.isIOS) {
+      pickedFile = await FilePicker.platform.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: ['xlsx', 'xls'],
+          allowMultiple: false,
+          withData: true,
+          withReadStream: true);
     }
 
     /// file might be picked
 
-    if (pickedFile != null&&pickedFile.files.isNotEmpty) {
+    if (pickedFile != null && pickedFile.files.isNotEmpty) {
       var bytes = pickedFile.files.single.bytes;
 
       var excel = Excel.decodeBytes(bytes as List<int>);
 
       List<List<String>> excelData = [];
-      Map<String,  List<List<String>>?> tableData={};
+      Map<String, List<List<String>>?> tableData = {};
 
       for (var table in excel.tables.keys) {
         print(table); //sheet Name
@@ -119,30 +113,22 @@ class _MyHomePageState extends State<MyHomePage> {
 
         for (var rows in excel.tables[table]!.rows) {
           // print('$row.value');
-          excelData.add(
-              rows.map((cell) => cell?.value.toString() ?? '').toList());
+          excelData
+              .add(rows.map((cell) => cell?.value.toString() ?? '').toList());
         }
-        
-       // tableData[table] = excelData;
 
+        // tableData[table] = excelData;
       }
 
       //print(tableData); //exceldata
 
       setState(() {
         _excelData = excelData;
-       // _tableData = tableData;
+        // _tableData = tableData;
       });
-
-
-
-    }
-    else {
+    } else {
       // User canceled the picker
     }
-
-
-
   }
 
   @override
@@ -183,27 +169,28 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: <Widget>[
             const SizedBox(height: 20),
-            _excelData != null ?
-             Expanded(child:  SingleChildScrollView(
-             scrollDirection: Axis.vertical,
-             child:  SingleChildScrollView(
-               scrollDirection: Axis.horizontal,
-               child: DataTable(
-                 columns: _excelData![0]
-                     .map((header) => DataColumn(label: Text(header.toString())))
-                     .toList(),
-                 rows: _excelData!.sublist(1).map((row) {
-                   return DataRow(
-                     cells: row
-                         .map((cell) => DataCell(Text(cell.toString())))
-                         .toList(),
-                   );
-                 }).toList(),
-               ),
-             ),
-           ))
-            : Text('No Excel file picked.'),
-
+            _excelData != null
+                ? Expanded(
+                    child: SingleChildScrollView(
+                    scrollDirection: Axis.vertical,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: DataTable(
+                        columns: _excelData![0]
+                            .map((header) =>
+                                DataColumn(label: Text(header.toString())))
+                            .toList(),
+                        rows: _excelData!.sublist(1).map((row) {
+                          return DataRow(
+                            cells: row
+                                .map((cell) => DataCell(Text(cell.toString())))
+                                .toList(),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ))
+                : Text('No Excel file picked.'),
           ],
         ),
       ),
@@ -215,7 +202,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 }
-
 
 /*
 Expanded(
